@@ -1,0 +1,16 @@
+# 依赖
+cryptography>=41.0.0
+Flask>=3.0.0
+
+# 测试
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# 生产模式额外依赖（按需安装，ES不可用降级）
+# elasticsearch>=8.0.0     # ES 客户端 (production_sim / production 模式)
+# bcos3sdk                  # FISCO BCOS Python SDK (production_sim / production 模式)
+# fluent-logger>=0.1.0     # Fluentd 日志转发（可选）
+
+# 开发工具
+# black>=23.0.0
+# flake8>=6.0.0

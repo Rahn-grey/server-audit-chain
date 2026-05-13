@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>服务器操作审计系统 - 验证页面</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; max-width: 960px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        h1 { color: #1a1a2e; border-bottom: 2px solid #16213e; padding-bottom: 10px; }
+        .card { background: #fff; border-radius: 8px; padding: 20px; margin: 16px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        label { display: block; margin: 8px 0 4px; font-weight: 600; }
+        input, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background: #16213e; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #0f3460; }
+        pre { background: #f8f9fa; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 13px; }
+        .success { border-left: 4px solid #28a745; padding-left: 12px; }
+        .fail { border-left: 4px solid #dc3545; padding-left: 12px; }
+    </style>
+</head>
+<body>
+    <h1>服务器操作审计系统</h1>
+    <p>基于联盟链的可信审计验证平台</p>
+
+    <div class="card">
+        <h2>链信息查询</h2>
+        <button onclick="fetchChainInfo()">获取链摘要信息</button>
+        <pre id="chainInfoResult">点击按钮查看</pre>
+    </div>
+
+    <div class="card">
+        <h2>搜索操作日志</h2>
+        <label>操作者: <input id="searchOperator" placeholder="例如: zhangsan"></label>
+        <label>起始时间: <input id="searchStart" placeholder="2026-05-08T00:00:00Z"></label>
+        <label>结束时间: <input id="searchEnd" placeholder="2026-05-09T00:00:00Z"></label>
+        <label>关键词: <input id="searchKeyword" placeholder="例如: rm"></label>
+        <button onclick="searchLogs()">搜索</button>
+        <pre id="searchResult">点击按钮查看</pre>
+    </div>
+
+    <div class="card">
+        <h2>验证单条日志</h2>
+        <label>Log ID: <input id="verifyLogId" placeholder="输入日志ID"></label>
+        <button onclick="verifyLog()">验证</button>
+        <pre id="verifyResult">点击按钮查看</pre>
+    </div>
+
+    <div class="card">
+        <h2>链完整性验证</h2>
+        <button onclick="verifyChain()">验证整链完整性</button>
+        <pre id="chainVerifyResult">点击按钮查看</pre>
+    </div>
+
+    <script>
+        async function apiGet(url) {
+            const res = await fetch(url);
+            return await res.json();
+        }
+        async function apiPost(url, data) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data),
+            });
+            return await res.json();
+        }
+        function display(el, data) {
+            const cls = data.verified === true || data.is_valid === true ? 'success' :
+                        data.verified === false || data.is_valid === false ? 'fail' : '';
+            document.getElementById(el).className = cls;
+            document.getElementById(el).textContent = JSON.stringify(data, null, 2);
+        }
+        async function fetchChainInfo() {
+            const data = await apiGet('/api/v1/audit/chain/info');
+            display('chainInfoResult', data);
+        }
+        async function searchLogs() {
+            const params = new URLSearchParams();
+            const op = document.getElementById('searchOperator').value;
+            const st = document.getElementById('searchStart').value;
+            const et = document.getElementById('searchEnd').value;
+            const kw = document.getElementById('searchKeyword').value;
+            if (op) params.set('operator', op);
+            if (st) params.set('start_time', st);
+            if (et) params.set('end_time', et);
+            if (kw) params.set('keyword', kw);
+            const data = await apiGet('/api/v1/audit/search?' + params.toString());
+            display('searchResult', data);
+        }
+        async function verifyLog() {
+            const logId = document.getElementById('verifyLogId').value;
+            if (!logId) { alert('请输入Log ID'); return; }
+            const data = await apiPost('/api/v1/audit/verify', {log_id: logId});
+            display('verifyResult', data);
+        }
+        async function verifyChain() {
+            const data = await apiGet('/api/v1/audit/chain/integrity');
+            display('chainVerifyResult', data);
+        }
+    </script>
+</body>
+</html>

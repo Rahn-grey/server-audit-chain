@@ -1,0 +1,57 @@
+# FISCO BCOS 节点配置（PBFT共识，4节点联盟）
+
+[chain]
+    id = 1              # 链ID
+    sm_crypto = false   # 非国密模式
+    sm_crypto_channel = false
+
+[consensus]
+    type = "pbft"               # PBFT共识算法
+    node_count = 4
+    # 3f+1 = 4 → 可容忍1个拜占庭节点
+    max_transaction_before_propose = 1000
+    block_tx_count_limit = 1000
+    consensus_timeout = 3000      # 共识超时(ms)
+
+[storage]
+    type = "rocksdb"
+    path = "/data"
+
+[network]
+    listen_ip = "0.0.0.0"
+    listen_port = 30300
+    rpc_ip = "0.0.0.0"
+    rpc_port = 20200
+
+[security]
+    # 节点私钥路径
+    private_key_path = "/data/node.pem"
+
+[tx_pool]
+    limit = 10000
+
+[log]
+    level = "info"
+    output_path = "/data/log"
+    enable_trace = false
+
+# 共识节点列表
+[[consensus_node]]
+    node_id = "node1"
+    ip = "bcos-node1"
+    port = 30300
+
+[[consensus_node]]
+    node_id = "node2"
+    ip = "bcos-node2"
+    port = 30300
+
+[[consensus_node]]
+    node_id = "node3"
+    ip = "bcos-node3"
+    port = 30300
+
+[[consensus_node]]
+    node_id = "node4"
+    ip = "bcos-node4"
+    port = 30300

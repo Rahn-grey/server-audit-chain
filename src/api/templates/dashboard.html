@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服务器操作审计系统 — 联盟链存证仪表板</title>
+<style>
+:root {
+    --bg: #f0f2f5;
+    --card: #fff;
+    --primary: #1a1a2e;
+    --accent: #e94560;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --text: #333;
+    --muted: #666;
+    --border: #e0e0e0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+}
+/* Header */
+.header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    color: #fff;
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.header h1 { font-size: 18px; font-weight: 600; }
+.header .badge {
+    background: rgba(255,255,255,.15);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+.header .status-dot {
+    display: inline-block; width: 8px; height: 8px;
+    border-radius: 50%; margin-right: 6px;
+}
+.status-dot.online { background: #4caf50; box-shadow: 0 0 6px #4caf50; }
+/* Layout */
+.layout { display:flex; min-height: calc(100vh - 56px); }
+.sidebar {
+    width: 220px;
+    background: #fff;
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    flex-shrink: 0;
+}
+.sidebar a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 24px; color: var(--text); text-decoration: none;
+    font-size: 14px; transition: all .15s;
+    border-left: 3px solid transparent;
+}
+.sidebar a:hover { background: #f5f7fa; }
+.sidebar a.active { background: #e8f0fe; color: #0f3460; border-left-color: #0f3460; font-weight: 600; }
+.sidebar .icon { font-size: 18px; width: 22px; text-align: center; }
+.main { flex:1; padding: 24px 32px; overflow-y: auto; }
+/* Cards */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    display: flex; align-items: center; gap: 16px;
+    transition: transform .15s;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+.stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+}
+.stat-icon.blue  { background: #e8f0fe; color: #1967d2; }
+.stat-icon.green { background: #e6f4ea; color: #137333; }
+.stat-icon.red   { background: #fce8e6; color: #c5221f; }
+.stat-icon.amber { background: #fef7e0; color: #f9ab00; }
+.stat-value { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.stat-label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+/* Panels */
+.panel {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.panel-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600; font-size: 15px;
+    display: flex; align-items: center; gap: 8px;
+}
+.panel-body { padding: 20px; }
+/* Table */
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 12px; text-align: left; font-size: 13px; }
+th { background: #f8f9fa; font-weight: 600; color: var(--muted); border-bottom: 2px solid var(--border); }
+td { border-bottom: 1px solid #f0f0f0; }
+tr:hover td { background: #fafbfc; }
+.tag {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 600;
+}
+.tag-high { background: #fce8e6; color: #c5221f; }
+.tag-medium { background: #fef7e0; color: #e37400; }
+.tag-normal { background: #e6f4ea; color: #137333; }
+/* Bar chart */
+.bar-chart { display:flex; gap:24px; align-items:flex-end; height:120px; padding: 0 20px; }
+.bar-col { display:flex; flex-direction:column; align-items:center; gap:6px; flex:1; }
+.bar {
+    width: 100%; max-width: 80px;
+    border-radius: 6px 6px 0 0;
+    transition: height .4s ease;
+    position: relative;
+}
+.bar.high { background: #dc3545; }
+.bar.medium { background: #ffc107; }
+.bar.normal { background: #28a745; }
+.bar-label { font-size: 12px; color: var(--muted); }
+.bar-value { font-weight: 700; font-size: 14px; }
+/* Search */
+.search-row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+.search-row .field { display:flex; flex-direction:column; gap:4px; }
+.search-row label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.search-row input {
+    padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; outline: none; width: 160px;
+    transition: border-color .15s;
+}
+.search-row input:focus { border-color: #0f3460; }
+.btn {
+    padding: 8px 20px; border: none; border-radius: 6px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .15s; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: #0f3460; color: #fff; }
+.btn-primary:hover { background: #1a1a2e; }
+.btn-outline { background: #fff; color: #0f3460; border: 1px solid #0f3460; }
+.btn-outline:hover { background: #e8f0fe; }
+.btn-danger { background: #dc3545; color: #fff; }
+.btn-danger:hover { background: #c82333; }
+/* Toast */
+.toast {
+    position: fixed; top: 72px; right: 24px;
+    padding: 12px 20px; border-radius: 8px;
+    color: #fff; font-size: 13px; font-weight: 600;
+    z-index: 1000; animation: slideIn .3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+.toast.success { background: #28a745; }
+.toast.error { background: #dc3545; }
+@keyframes slideIn { from { transform: translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+/* Loading */
+.spinner { display:inline-block; width:18px; height:18px; border:2px solid #ddd; border-top-color:#0f3460; border-radius:50%; animation:spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty { text-align:center; padding:40px; color:var(--muted); font-size:14px; }
+/* Tab */
+.tabs { display:flex; gap:0; margin-bottom:16px; }
+.tab {
+    padding: 8px 16px; border:1px solid var(--border); background:#fff;
+    cursor:pointer; font-size:13px; transition:all .15s;
+}
+.tab:first-child { border-radius:6px 0 0 6px; }
+.tab:last-child { border-radius:0 6px 6px 0; }
+.tab.active { background:#0f3460; color:#fff; border-color:#0f3460; }
+/* Section visibility */
+.section { display:none; }
+.section.active { display:block; }
+.timeline-entry {
+    padding:10px 16px; border-left:3px solid var(--border); margin-left:16px;
+    font-size:13px; line-height:1.8;
+}
+.timeline-entry.risk-high { border-left-color:#dc3545; background:#fff5f5; }
+.timeline-entry.risk-medium { border-left-color:#ffc107; background:#fffdf5; }
+</style>
+</head>
+<body>
+
+<header class="header">
+    <h1>⛓ 服务器操作审计系统</h1>
+    <span class="badge"><span class="status-dot online"></span>联盟链存证 · 实时监控</span>
+</header>
+
+<div class="layout">
+<aside class="sidebar">
+    <a href="#" class="active" data-section="dashboard">
+        <span class="icon">📊</span> 仪表板</a>
+    <a href="#" data-section="search">
+        <span class="icon">🔍</span> 日志搜索</a>
+    <a href="#" data-section="verify">
+        <span class="icon">✅</span> 真伪验证</a>
+    <a href="#" data-section="chain">
+        <span class="icon">🔗</span> 链管理</a>
+    <a href="#" data-section="replay-sec">
+        <span class="icon">⏪</span> 操作回放</a>
+</aside>
+
+<main class="main">
+
+<!-- ======== 仪表板 ======== -->
+<section class="section active" id="section-dashboard">
+    <div class="stats" id="stats-cards">
+        <div class="stat-card"><div class="stat-icon blue">📦</div><div><div class="stat-value" id="s-total">-</div><div class="stat-label">链上存证数</div></div></div>
+        <div class="stat-card"><div class="stat-icon green">📝</div><div><div class="stat-value" id="s-commands">-</div><div class="stat-label">已记录操作</div></div></div>
+        <div class="stat-card"><div class="stat-icon red">⚠</div><div><div class="stat-value" id="s-high">-</div><div class="stat-label">高危操作</div></div></div>
+        <div class="stat-card"><div class="stat-icon amber">🔗</div><div><div class="stat-value" id="s-status">-</div><div class="stat-label">链完整性</div></div></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+        <div class="panel">
+            <div class="panel-header">📈 风险等级分布</div>
+            <div class="panel-body">
+                <div class="bar-chart" id="risk-chart">
+                    <div class="bar-col"><div class="bar-value" id="bc-high">0</div><div class="bar high" id="b-high" style="height:0"></div><div class="bar-label">高危</div></div>
+                    <div class="bar-col"><div class="bar-value" id="bc-medium">0</div><div class="bar medium" id="b-medium" style="height:0"></div><div class="bar-label">中危</div></div>
+                    <div class="bar-col"><div class="bar-value" id="bc-normal">0</div><div class="bar normal" id="b-normal" style="height:0"></div><div class="bar-label">常规</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="panel-header">🔗 最新链信息</div>
+            <div class="panel-body" id="chain-summary" style="font-size:13px;line-height:2.2;">
+                <span class="spinner"></span> 加载中...
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">🕐 最近高危操作 <span style="font-size:12px;color:var(--muted);font-weight:400;margin-left:8px;" id="refresh-hint">每30秒自动刷新</span></div>
+        <div class="panel-body" id="recent-high">
+            <span class="spinner"></span> 加载中...
+        </div>
+    </div>
+</section>
+
+<!-- ======== 日志搜索 ======== -->
+<section class="section" id="section-search">
+    <div class="panel">
+        <div class="panel-header">🔍 搜索操作日志</div>
+        <div class="panel-body">
+            <div class="search-row">
+                <div class="field"><label>操作者</label><input id="f-operator" placeholder="zhangsan"></div>
+                <div class="field"><label>起始时间</label><input id="f-start" placeholder="2026-05-13T00:00"></div>
+                <div class="field"><label>结束时间</label><input id="f-end" placeholder="2026-05-13T23:59"></div>
+                <div class="field"><label>命令关键词</label><input id="f-keyword" placeholder="rm / sudo"></div>
+                <div class="field" style="justify-content:flex-end"><label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="doSearch()">🔍 搜索</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-header" id="search-result-header">搜索结果</div>
+        <div class="panel-body" id="search-result-body">
+            <div class="empty">点击搜索按钮查询</div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== 真伪验证 ======== -->
+<section class="section" id="section-verify">
+    <div class="panel">
+        <div class="panel-header">✅ 验证单条日志真伪</div>
+        <div class="panel-body">
+            <div class="search-row">
+                <div class="field"><label>日志 ID</label><input id="v-logid" placeholder="输入日志ID..." style="width:280px;"></div>
+                <div class="field" style="justify-content:flex-end"><label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="doVerify()">✅ 验证</button>
+                </div>
+            </div>
+            <div id="verify-result" style="margin-top:16px;"></div>
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-header">🔗 整链完整性验证</div>
+        <div class="panel-body">
+            <button class="btn btn-outline" onclick="doChainVerify()">🔍 验证整链</button>
+            <div id="chain-verify-result" style="margin-top:16px;"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== 链管理 ======== -->
+<section class="section" id="section-chain">
+    <div class="panel">
+        <div class="panel-header">📋 链摘要信息</div>
+        <div class="panel-body" id="chain-info-detail" style="font-size:13px;line-height:2.5;">
+            <span class="spinner"></span> 加载中...
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-header">🔍 按批次查询存证</div>
+        <div class="panel-body">
+            <div class="search-row">
+                <div class="field"><label>批次 ID</label><input id="c-batchid" placeholder="batch_20260513_1430" style="width:280px;"></div>
+                <div class="field" style="justify-content:flex-end"><label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="doQueryBatch()">查询</button>
+                </div>
+            </div>
+            <div id="batch-result" style="margin-top:16px;"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ======== 操作回放 ======== -->
+<section class="section" id="section-replay-sec">
+    <div class="panel">
+        <div class="panel-header">⏪ 操作回放</div>
+        <div class="panel-body">
+            <div class="search-row">
+                <div class="field"><label>操作者</label><input id="r-operator" placeholder="指定操作者"></div>
+                <div class="field"><label>起始时间</label><input id="r-start" placeholder="2026-05-13T00:00"></div>
+                <div class="field"><label>结束时间</label><input id="r-end" placeholder="2026-05-13T23:59"></div>
+                <div class="field" style="justify-content:flex-end"><label>&nbsp;</label>
+                    <button class="btn btn-primary" onclick="doReplay()">▶ 回放</button>
+                </div>
+            </div>
+            <div style="margin-top:8px;">
+                <span class="tag tag-medium" style="cursor:pointer" onclick="document.getElementById('r-operator').value='';doReplay();">全部操作者</span>
+            </div>
+        </div>
+    </div>
+    <div id="replay-result"></div>
+</section>
+
+</main>
+</div>
+
+<script>
+// ====================== API ======================
+const BASE = '/api/v1/audit';
+async function get(url) { const r = await fetch(BASE + url); return r.json(); }
+async function post(url, data) {
+    const r = await fetch(BASE + url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data) });
+    return r.json();
+}
+
+// ====================== Navigation ======================
+document.querySelectorAll('.sidebar a').forEach(a => {
+    a.addEventListener('click', e => {
+        e.preventDefault();
+        document.querySelectorAll('.sidebar a').forEach(x => x.classList.remove('active'));
+        a.classList.add('active');
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        const secId = 'section-' + a.dataset.section;
+        document.getElementById(secId).classList.add('active');
+        // auto-load on nav
+        const m = { dashboard:loadDashboard, chain:loadChainInfo, 'replay-sec':()=>{} };
+        if (m[a.dataset.section]) m[a.dataset.section]();
+    });
+});
+
+function showToast(msg, type='success') {
+    const t = document.createElement('div');
+    t.className = 'toast ' + type; t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+
+// ====================== Dashboard ======================
+async function loadDashboard() {
+    try {
+        const [chain, searchRes] = await Promise.all([
+            get('/chain/info'),
+            get('/search?size=500'),
+        ]);
+        // Stats
+        document.getElementById('s-total').textContent = chain.total_records || 0;
+        const logs = searchRes.results || [];
+        document.getElementById('s-commands').textContent = searchRes.total || 0;
+        const highCount = logs.filter(l => l.risk_level === 'high').length;
+        const medCount = logs.filter(l => l.risk_level === 'medium').length;
+        const normCount = logs.filter(l => l.risk_level === 'normal').length;
+        document.getElementById('s-high').textContent = highCount;
+
+        // Chain status
+        const integ = await get('/chain/integrity');
+        const valid = integ.is_valid;
+        document.getElementById('s-status').textContent = valid ? '✅ 完整' : '❌ 断裂';
+        document.getElementById('s-status').style.color = valid ? '#28a745' : '#dc3545';
+
+        // Bar chart
+        const max = Math.max(highCount, medCount, normCount, 1);
+        document.getElementById('bc-high').textContent = highCount;
+        document.getElementById('bc-medium').textContent = medCount;
+        document.getElementById('bc-normal').textContent = normCount;
+        document.getElementById('b-high').style.height = (highCount/max*100) + 'px';
+        document.getElementById('b-medium').style.height = (medCount/max*100) + 'px';
+        document.getElementById('b-normal').style.height = (normCount/max*100) + 'px';
+
+        // Chain summary
+        document.getElementById('chain-summary').innerHTML = `
+            <b>创世批次:</b> ${chain.genesis_batch_id || 'N/A'}<br>
+            <b>创世时间:</b> ${(chain.genesis_time||'').slice(0,19) || 'N/A'}<br>
+            <b>最新批次:</b> ${chain.latest_batch_id || 'N/A'}<br>
+            <b>最新上链:</b> ${(chain.latest_time||'').slice(0,19) || 'N/A'}<br>
+            <b>最新哈希:</b> <code style="font-size:11px;">${(chain.latest_record_hash||'').slice(0,32)}...</code><br>
+            <b>完整性:</b> <span style="color:${valid?'#28a745':'#dc3545'}">${valid ? '✅ 完整' : '❌ 断裂 (位置:'+integ.broken_position+')'}</span>`;
+
+        // Recent high-risk
+        const highLogs = logs.filter(l => l.risk_level === 'high').slice(0, 20);
+        if (highLogs.length === 0) {
+            document.getElementById('recent-high').innerHTML = '<div class="empty">✅ 暂无高危操作</div>';
+        } else {
+            document.getElementById('recent-high').innerHTML =
+                '<table><tr><th>时间</th><th>操作者</th><th>来源IP</th><th>命令</th><th>结果</th></tr>' +
+                highLogs.map(l => `<tr>
+                    <td>${(l.timestamp||'').slice(0,19)}</td>
+                    <td><b>${l.operator||'?'}</b></td>
+                    <td>${l.ip||'?'}</td>
+                    <td><code>${(l.command||'').slice(0,60)}</code></td>
+                    <td><span class="tag tag-high">${l.result||'?'}</span></td>
+                </tr>`).join('') + '</table>';
+        }
+    } catch(e) {
+        console.error(e);
+        showToast('加载仪表板失败: ' + e.message, 'error');
+    }
+}
+
+// ====================== Search ======================
+async function doSearch() {
+    const params = new URLSearchParams();
+    const op = document.getElementById('f-operator').value.trim();
+    const st = document.getElementById('f-start').value.trim();
+    const et = document.getElementById('f-end').value.trim();
+    const kw = document.getElementById('f-keyword').value.trim();
+    if (op) params.set('operator', op);
+    if (st) params.set('start_time', st);
+    if (et) params.set('end_time', et);
+    if (kw) params.set('keyword', kw);
+    params.set('size', '100');
+
+    try {
+        const data = await get('/search?' + params.toString());
+        document.getElementById('search-result-header').textContent = `搜索结果 (${data.total||0} 条)`;
+        const logs = data.results || [];
+        if (logs.length === 0) {
+            document.getElementById('search-result-body').innerHTML = '<div class="empty">未找到匹配的日志</div>';
+            return;
+        }
+        document.getElementById('search-result-body').innerHTML =
+            '<table><tr><th>时间</th><th>操作者</th><th>IP</th><th>命令</th><th>风险</th><th>结果</th><th>Log ID</th></tr>' +
+            logs.map(l => `<tr>
+                <td>${(l.timestamp||'').slice(0,19)}</td>
+                <td>${l.operator||'?'}</td>
+                <td>${l.ip||'?'}</td>
+                <td><code>${(l.command||'').slice(0,55)}</code></td>
+                <td><span class="tag tag-${l.risk_level||'normal'}">${l.risk_level||'normal'}</span></td>
+                <td>${l.result||'?'}</td>
+                <td style="font-size:11px;color:var(--muted);">${(l.log_id||'').slice(0,12)}</td>
+            </tr>`).join('') + '</table>';
+    } catch(e) {
+        showToast('搜索失败: ' + e.message, 'error');
+    }
+}
+
+// ====================== Verify ======================
+async function doVerify() {
+    const logId = document.getElementById('v-logid').value.trim();
+    if (!logId) { showToast('请输入日志ID', 'error'); return; }
+    try {
+        const data = await post('/verify', {log_id: logId});
+        const ok = data.verified;
+        document.getElementById('verify-result').innerHTML =
+            `<div style="padding:16px;border-radius:8px;border-left:4px solid ${ok?'#28a745':'#dc3545'};background:${ok?'#e6f4ea':'#fce8e6'};">
+                <b style="font-size:16px;">${ok ? '✅ 验证通过' : '❌ 验证失败'}</b>
+                <p style="margin-top:8px;font-size:13px;">${data.message||''}</p>
+                <table style="margin-top:12px;">
+                ${Object.entries(data).map(([k,v]) => `<tr><td style="font-weight:600;">${k}</td><td style="font-size:12px;">${v}</td></tr>`).join('')}
+                </table>
+            </div>`;
+    } catch(e) { showToast('验证失败: ' + e.message, 'error'); }
+}
+
+async function doChainVerify() {
+    try {
+        const data = await get('/chain/integrity');
+        const ok = data.is_valid;
+        document.getElementById('chain-verify-result').innerHTML =
+            `<div style="padding:16px;border-radius:8px;border-left:4px solid ${ok?'#28a745':'#dc3545'};background:${ok?'#e6f4ea':'#fce8e6'};">
+                <b style="font-size:16px;">${ok ? '✅ 链完整' : '❌ 链已断裂'}</b>
+                <p style="margin-top:8px;">记录总数: ${data.total_records||0} | 断裂位置: ${data.broken_position===-1?'无':data.broken_position}</p>
+            </div>`;
+    } catch(e) { showToast('验证失败: ' + e.message, 'error'); }
+}
+
+// ====================== Chain ======================
+async function loadChainInfo() {
+    try {
+        const data = await get('/chain/info');
+        document.getElementById('chain-info-detail').innerHTML = `
+            <b>存证总数:</b> ${data.total_records||0}<br>
+            <b>创世批次:</b> ${data.genesis_batch_id||'N/A'}<br>
+            <b>创世时间:</b> ${(data.genesis_time||'').slice(0,19)||'N/A'}<br>
+            <b>最新批次:</b> ${data.latest_batch_id||'N/A'}<br>
+            <b>最新时间:</b> ${(data.latest_time||'').slice(0,19)||'N/A'}<br>
+            <b>最新存证哈希:</b> <code style="word-break:break-all;">${data.latest_record_hash||'N/A'}</code>`;
+    } catch(e) { showToast('加载失败: '+e.message, 'error'); }
+}
+
+async function doQueryBatch() {
+    const bid = document.getElementById('c-batchid').value.trim();
+    if (!bid) { showToast('请输入批次ID', 'error'); return; }
+    try {
+        const data = await get('/record/' + encodeURIComponent(bid));
+        if (data.error) {
+            document.getElementById('batch-result').innerHTML = `<div class="empty">${data.error}</div>`;
+            return;
+        }
+        document.getElementById('batch-result').innerHTML =
+            '<table>' + Object.entries(data).map(([k,v]) =>
+                `<tr><td style="font-weight:600;">${k}</td><td style="font-size:12px;word-break:break-all;">${v}</td></tr>`
+            ).join('') + '</table>';
+    } catch(e) { showToast('查询失败: '+e.message,'error'); }
+}
+
+// ====================== Replay ======================
+async function doReplay() {
+    const op = document.getElementById('r-operator').value.trim();
+    const st = document.getElementById('r-start').value.trim();
+    const et = document.getElementById('r-end').value.trim();
+
+    const params = new URLSearchParams();
+    if (op) params.set('operator', op);
+    if (st) params.set('start_time', st);
+    if (et) params.set('end_time', et);
+    params.set('size', '200');
+
+    try {
+        const data = await get('/search?' + params.toString());
+        const logs = (data.results || []);
+        logs.sort((a,b) => (a.timestamp||'').localeCompare(b.timestamp||''));
+
+        if (logs.length === 0) {
+            document.getElementById('replay-result').innerHTML =
+                '<div class="panel"><div class="panel-body"><div class="empty">无匹配操作记录</div></div></div>';
+            return;
+        }
+
+        // Split sessions
+        const sessions = [];
+        let cur = [];
+        let prev = null;
+        for (const l of logs) {
+            const ts = new Date(l.timestamp);
+            if (prev && (ts - prev) > 30*60*1000) {
+                if (cur.length) sessions.push(cur);
+                cur = [];
+            }
+            cur.push(l);
+            prev = ts;
+        }
+        if (cur.length) sessions.push(cur);
+
+        let html = `<div class="panel"><div class="panel-header">⏪ 回放结果 — ${op||'全部操作者'} (${logs.length} 条 / ${sessions.length} 个会话)</div><div class="panel-body">`;
+        for (let i=0; i<sessions.length; i++) {
+            const s = sessions[i];
+            html += `<h4 style="margin:12px 0 6px;">📌 会话 #${i+1} · ${s[0].timestamp?.slice(0,19)||'?'} → ${s[s.length-1].timestamp?.slice(0,19)||'?'} · ${s.length} 条</h4>`;
+            for (const l of s) {
+                const cls = 'timeline-entry risk-' + (l.risk_level||'normal');
+                html += `<div class="${cls}">
+                    <b>${(l.timestamp||'').slice(11,19)}</b>
+                    &nbsp;${l.operator||'?'}@${l.ip||'?'}&nbsp;
+                    <span class="tag tag-${l.risk_level||'normal'}">${l.risk_level||'?'}</span>&nbsp;
+                    <code>${l.command||'?'}</code>
+                    &nbsp;→ ${l.result||'?'}
+                </div>`;
+            }
+        }
+        html += '</div></div>';
+        document.getElementById('replay-result').innerHTML = html;
+    } catch(e) { showToast('回放失败: '+e.message,'error'); }
+}
+
+// ====================== Init ======================
+loadDashboard();
+setInterval(loadDashboard, 30000);
+</script>
+</body>
+</html>
