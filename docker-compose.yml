@@ -30,6 +30,7 @@ services:
       - "20200:20200"
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
       - bcos-data1:/data
     networks:
       - audit-chain-net
@@ -47,6 +48,7 @@ services:
       - "20201:20200"
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
       - bcos-data2:/data
     networks:
       - audit-chain-net
@@ -64,6 +66,7 @@ services:
       - "20202:20200"
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
       - bcos-data3:/data
     networks:
       - audit-chain-net
@@ -81,6 +84,7 @@ services:
       - "20203:20200"
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
       - bcos-data4:/data
     networks:
       - audit-chain-net

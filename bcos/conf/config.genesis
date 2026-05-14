@@ -1,0 +1,21 @@
+[consensus]
+    consensus_type = pbft
+    block_tx_count_limit = 1000
+    leader_period = 1
+    node.0 = bcos-node1:30300
+    node.1 = bcos-node2:30300
+    node.2 = bcos-node3:30300
+    node.3 = bcos-node4:30300
+
+[group]
+    group_id = group0
+
+[version]
+    compatibility_version = 3.0.0
+
+[tx]
+    gas_limit = 3000000000
+
+[executor]
+    is_wasm = false
+    is_auth_check = false
