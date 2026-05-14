@@ -6,4 +6,4 @@
 services:
   audit-api:
     environment:
-      - MOCK_NODE_URLS=http://mock-node0:6000,http://mock-node1:6001,http://mock-node2:6002,http://mock-node3:6003
+      - MOCK_NODE_URLS=http://mock-node0:6000,http://mock-node1:6000,http://mock-node2:6000,http://mock-node3:6000
