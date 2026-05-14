@@ -47,6 +47,9 @@ consensus_type=pbft
 block_tx_count_limit=1000
 leader_period=1
 
+[security]
+private_key_path=/data/node.pem
+
 [storage]
 type=rocksdb
 path=/data
