@@ -1,0 +1,16 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+ENV NODE_ID=node_0
+ENV NODE_PORT=6000
+ENV NODE_BYZANTINE=false
+
+EXPOSE 6000
+
+CMD python -m src.debug.mock_node_server --node-id ${NODE_ID} --port ${NODE_PORT} $(test "${NODE_BYZANTINE}" = "true" && echo "--byzantine")

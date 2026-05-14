@@ -1,20 +1,118 @@
 # ================================================================
 # 服务器操作审计系统 — Docker 部署
 # ================================================================
-# 架构:
-#   MockBCOS 自有联盟链 (替代 FISCO BCOS)
-#   4 节点 PBFT 共识引擎集成在 audit-api 进程内
+# 生产模式 (默认, 服务端 + MockBCOS 进程内):
+#   docker-compose up -d
 #
-# 启动:
-#   docker-compose up -d                         # 生产模式
-#   docker-compose --profile es up -d             # 生产模式 + ES
-#   make demo                                     # 演示模式(无容器)
+# 生产模拟 (4 独立 MockBCOS 节点容器 + API + ES):
+#   docker-compose --profile production_sim up -d
+#
+# 演示 (MockBCOS, 无需容器):
+#   make demo
 # ================================================================
 
 services:
-  # ---- 审计 API (内置 MockBCOS 联盟链) ----
+  # ================================================================
+  # 生产模拟: 4 个 MockBCOS 节点容器
+  # ================================================================
+  mock-node0:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: mock-node0
+    ports:
+      - "6000:6000"
+    environment:
+      - NODE_ID=node_0
+      - NODE_PORT=6000
+      - NODE_BYZANTINE=false
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production_sim"]
+
+  mock-node1:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: mock-node1
+    ports:
+      - "6001:6000"
+    environment:
+      - NODE_ID=node_1
+      - NODE_PORT=6000
+      - NODE_BYZANTINE=false
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production_sim"]
+
+  mock-node2:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: mock-node2
+    ports:
+      - "6002:6000"
+    environment:
+      - NODE_ID=node_2
+      - NODE_PORT=6000
+      - NODE_BYZANTINE=false
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production_sim"]
+
+  mock-node3:
+    build:
+      context: .
+      dockerfile: Dockerfile.node
+    container_name: mock-node3
+    ports:
+      - "6003:6000"
+    environment:
+      - NODE_ID=node_3
+      - NODE_PORT=6000
+      - NODE_BYZANTINE=true
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production_sim"]
+
+  # ================================================================
+  # 审计 API
+  # ================================================================
   audit-api:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audit-api
+    ports:
+      - "5000:5000"
+    environment:
+      - AUDIT_SYSTEM_MODE=${AUDIT_SYSTEM_MODE:-demo}
+      - FLASK_APP=src.api.routes
+    depends_on:
+      mock-node0:
+        condition: service_started
+      mock-node1:
+        condition: service_started
+      mock-node2:
+        condition: service_started
+      mock-node3:
+        condition: service_started
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production_sim"]
+
+  # ================================================================
+  # 审计 API (生产/演示 单容器，内置 MockBCOS)
+  # ================================================================
+  audit-api-standalone:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: audit-api
     ports:
       - "5000:5000"
@@ -22,14 +120,13 @@ services:
       - AUDIT_SYSTEM_MODE=demo
       - FLASK_APP=src.api.routes
       - ES_HOST=${ES_HOST:-elasticsearch:9200}
-    depends_on:
-      elasticsearch:
-        condition: service_started
     networks:
       - audit-chain-net
     restart: unless-stopped
 
-  # ---- Elasticsearch (可选) ----
+  # ================================================================
+  # Elasticsearch (可选)
+  # ================================================================
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: audit-es
@@ -44,7 +141,7 @@ services:
     networks:
       - audit-chain-net
     restart: unless-stopped
-    profiles: ["es"]
+    profiles: ["production_sim"]
 
 volumes:
   es-data:
