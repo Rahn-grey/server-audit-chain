@@ -30,7 +30,7 @@
 |------|--------|------|----------|
 | **demo** | MockBCOS 进程内 4 节点 PBFT | SQLite | 本地开发、功能演示、零依赖 |
 | **production_sim** | MockBCOS Docker 4 独立节点 HTTP | ES | 联盟链本地测试、容器化部署 |
-| **production** | FISCO BCOS 真实节点 | ES | 生产环境部署 |
+| **production** | MockBCOS 远程独立节点 | ES | 服务器端部署 |
 
 ## 支持的操作系统
 
@@ -62,7 +62,7 @@ flowchart TB
         API --> 处理流程
         处理流程 --> ES[("Elasticsearch<br/>日志原文存储")]
 
-        subgraph BCOS["FISCO BCOS 4节点联盟链"]
+        subgraph BCOS["MockBCOS 4节点共识网络"]
             N1("node1") --- N2("node2")
             N2 --- N3("node3")
             N3 --- N4("node4")
@@ -96,7 +96,7 @@ sequenceDiagram
     participant API as audit-api
     participant Chain as Hash Chain
     participant M as Merkle Tree
-    participant BCOS as FISCO BCOS
+    participant BCOS as MockBCOS 共识网络
     participant ES as Elasticsearch
 
     S->>C: 命令执行日志
@@ -144,7 +144,7 @@ python -m src.cli.audit_cli report
 
 ---
 
-### 2. 服务端部署（FISCO BCOS 节点 + API）
+### 2. 服务端部署（MockBCOS 节点 + API）
 
 部署到服务器，作为联盟链节点运行，接收客户端采集的日志并上链存证。
 
@@ -255,7 +255,7 @@ make demo
 | **区块链** | MockBCOS 合约模拟（Demo 模式零依赖） | ✅ |
 | | MockConsensusNetwork PBFT 共识（Pre-Prepare→Prepare→Commit） | ✅ |
 | | 拜占庭节点模拟 + 跨节点账本验证 | ✅ |
-| | FISCO BCOS 真实合约（生产模式） | ✅ |
+| | MockBCOS 合约模拟（全模式） | ✅ |
 | | 链完整性验证（逐条验证 prev_hash + record_hash） | ✅ |
 | **API** | POST /api/v1/audit/batch（日志批次上链） | ✅ |
 | | GET /api/v1/audit/search（日志搜索 + ES 分页） | ✅ |
@@ -294,7 +294,7 @@ make demo
 | | `src/debug/mock_node_server.py` | MockBCOS 节点 HTTP RPC 服务（Docker 容器） |
 | | `src/debug/mock_bcos_client.py` | MockBCOS HTTP 远程客户端（production_sim） |
 | | `src/ledger/__init__.py` | 模式自动选择（demo/production_sim/production） |
-| | `src/ledger/bcos_client.py` | FISCO BCOS SDK / JSON-RPC 客户端 |
+| | `src/ledger/bcos_client.py` | BCOS 客户端（兼容层） |
 | | `src/ledger/contract.py` | 合约调用封装 |
 | | `bcos/contract/audit_ledger.py` | Python 合约 + ABI 定义 |
 | 存储 | `src/debug/mock_es.py` | SQLite 模拟 Elasticsearch |

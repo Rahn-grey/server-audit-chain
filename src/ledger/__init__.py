@@ -3,7 +3,7 @@
 根据系统模式自动选择:
     demo              → MockBCOS (进程内共享单例)
     production_sim    → MockBCOS HTTP 远程客户端 (Docker 4 独立节点)
-    production        → 真实 FISCO BCOS 客户端 (服务器节点)
+    production        → MockBCOS HTTP 远程客户端 (独立节点)
 """
 
 import logging
@@ -30,8 +30,8 @@ elif IS_PRODUCTION_SIM:
     logger.info("联盟链: MockBCOS 进程内 (生产模拟, 未配置远程节点)")
 
 elif IS_PRODUCTION:
-    from src.ledger.bcos_client import BCOSClient
-    logger.info("联盟链: FISCO BCOS SDK (生产模式)")
+    from src.debug.mock_bcos import MockBCOS as BCOSClient
+    logger.info("联盟链: MockBCOS 进程内 (生产模式, 未配置远程节点)")
 
 else:
     from src.debug.mock_bcos import MockBCOS as BCOSClient

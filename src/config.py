@@ -4,8 +4,8 @@ import os
 # 系统运行模式（3 种）
 # ====================================================================
 #   demo              — MockBCOS 单进程模拟 + SQLite，零依赖一键演示
-#   production_sim    — Docker 4节点 FISCO BCOS + ES，本地联盟链测试 (6容器)
-#   production        — 服务器 FISCO BCOS 单节点 + ES，真实部署
+#   production_sim    — Docker 4 节点 MockBCOS + ES，本地联盟链模拟
+#   production        — 服务器 MockBCOS 远程节点 + ES，服务端部署
 #                       (生产模式默认输出详细步骤日志)
 # ====================================================================
 # 默认: production（docker-compose 直接部署即生产模式）
@@ -15,7 +15,7 @@ SYSTEM_MODE = os.environ.get("AUDIT_SYSTEM_MODE", "production")
 IS_DEMO = SYSTEM_MODE == "demo"
 IS_PRODUCTION_SIM = SYSTEM_MODE == "production_sim"
 IS_PRODUCTION = SYSTEM_MODE == "production"
-IS_REAL_BCOS = IS_PRODUCTION_SIM or IS_PRODUCTION  # 需要真实 FISCO BCOS
+IS_REAL_BCOS = IS_PRODUCTION_SIM or IS_PRODUCTION  # 非 demo 模式均使用独立节点
 
 # ---- 生产模式详细日志 ----
 # 生产模式默认输出每一步操作的详细日志（与演示模式同级别）

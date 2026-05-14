@@ -211,8 +211,8 @@ def query_record(batch_id):
 def consensus_status():
     """获取联盟链 PBFT 共识网络状态。
 
-    在 debug 模式下返回完整的 4 节点 PBFT 投票状态；
-    生产模式下通过 FISCO BCOS 查询节点列表。
+    在 production_sim 模式下返回完整的 4 节点 PBFT 投票状态；
+    production 模式下通过 MockBCOS 远程节点查询状态。
     """
     try:
         status = _contract.get_consensus_status()

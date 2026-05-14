@@ -1,5 +1,5 @@
 from __future__ import annotations
-"""MockBCOS - 模拟 FISCO BCOS 联盟链 + PBFT 共识。
+"""MockBCOS - 自研联盟链 + PBFT 共识。
 
 架构:
     MockBCOS (外部接口，共享单例)
@@ -583,7 +583,7 @@ def reset_shared_network():
 # ======================================================================
 
 class MockBCOS:
-    """模拟 FISCO BCOS — 内部委托给 PBFT 共识网络。
+    """MockBCOS — 内部委托给 PBFT 共识网络。
 
     所有 MockBCOS 实例共享同一个底层共识网络，
     因此无论从哪里调用，都操作同一个 4 节点联盟链。

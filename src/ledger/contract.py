@@ -60,7 +60,7 @@ class AuditContract:
         return [r.to_dict() for r in records]
 
     # ------------------------------------------------------------------
-    # 联盟链共识接口 (debug: MockBCOS→PBFT; production: FISCO BCOS)
+    # 联盟链共识接口 (MockBCOS PBFT)
     # ------------------------------------------------------------------
 
     def get_consensus_status(self) -> dict:
