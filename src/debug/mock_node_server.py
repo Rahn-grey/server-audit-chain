@@ -108,14 +108,22 @@ def query(batch_id):
 
 @app.route("/integrity", methods=["GET"])
 def integrity():
+    first_id = _records[0]["batch_id"] if _records else None
+    last_id = _records[-1]["batch_id"] if _records else None
+    first_time = _records[0]["timestamp"] if _records else None
+    last_time = _records[-1]["timestamp"] if _records else None
     for i, r in enumerate(_records):
         expected_prev = GENESIS_PREV_HASH if i == 0 else _records[i - 1]["record_hash"]
         if r["prev_hash"] != expected_prev:
-            return jsonify({"is_valid": False, "broken_position": i, "total": len(_records)})
+            return jsonify({"is_valid": False, "broken_position": i, "total": len(_records),
+                            "first_batch_id": first_id, "last_batch_id": last_id})
         expected = _compute_hash(r["prev_hash"], r["batch_id"], r["merkle_root"], r["signature"], r["timestamp"])
         if r["record_hash"] != expected:
-            return jsonify({"is_valid": False, "broken_position": i, "total": len(_records)})
-    return jsonify({"is_valid": True, "broken_position": -1, "total": len(_records)})
+            return jsonify({"is_valid": False, "broken_position": i, "total": len(_records),
+                            "first_batch_id": first_id, "last_batch_id": last_id})
+    return jsonify({"is_valid": True, "broken_position": -1, "total": len(_records),
+                    "first_batch_id": first_id, "last_batch_id": last_id,
+                    "first_time": first_time, "last_time": last_time})
 
 
 @app.route("/status", methods=["GET"])
@@ -125,6 +133,8 @@ def status():
         "type": "honest" if _is_honest else "byzantine",
         "record_count": len(_records),
         "latest_hash": _records[-1]["record_hash"][:16] if _records else "N/A",
+        "latest_batch_id": _records[-1]["batch_id"] if _records else None,
+        "latest_time": _records[-1]["timestamp"] if _records else None,
     })
 
 

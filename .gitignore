@@ -8,5 +8,10 @@ coverage_report
 debug_data/
 .venv
 venv/
+.wsl-venv/
 .DS_Store
 Thumbs.db
+*.sqlite3
+*.db
+.claude/
+es-data/

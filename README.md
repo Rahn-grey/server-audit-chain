@@ -2,6 +2,17 @@
 
 利用联盟链不可篡改特性，将服务器操作行为的关键证据（Merkle Root + Ed25519 签名）锚定到链上，形成从"命令执行"到"审计验证"的完整可信证据链。
 
+## 核心特性
+
+- **PBFT 共识**：4 节点联盟链，Pre-Prepare → Prepare → Commit 三阶段共识，容忍 1 个拜占庭节点
+- **Merkle 存证**：批次日志构建 Merkle 树，Root 上链存证，支持单条日志存在性证明
+- **哈希链**：SHA-256 跨批次哈希链（prev_hash → record_hash），任意环节篡改即断链
+- **Ed25519 签名**：操作者/服务器密钥签名，不可否认性保障
+- **危险命令告警**：高危命令即时邮件告警，中危命令缓冲批量告警
+- **篡改检测**：篡改任意字段导致 Merkle Root 不匹配 → 链完整性验证自动检出
+- **操作回放**：按操作者 + 时间轴回放完整操作序列
+- **一键报告**：Markdown 格式审计报告（风险分布、操作者统计、高危清单）
+
 ## 系统作用
 
 服务器是企业的核心资产。管理员在服务器上执行的所有命令（包括误操作和恶意操作）都应当被记录、存证、可审计。本系统：
@@ -12,6 +23,14 @@
 4. **告警**：高危命令实时邮件告警，中危命令缓冲批量告警
 5. **回放**：按时间轴回放任意操作者的完整操作序列
 6. **报告**：一键生成 Markdown 审计报告（含风险分布、操作者统计、高危清单）
+
+## 运行模式
+
+| 模式 | 区块链 | 存储 | 适用场景 |
+|------|--------|------|----------|
+| **demo** | MockBCOS 进程内 4 节点 PBFT | SQLite | 本地开发、功能演示、零依赖 |
+| **production_sim** | MockBCOS Docker 4 独立节点 HTTP | ES | 联盟链本地测试、容器化部署 |
+| **production** | FISCO BCOS 真实节点 | ES | 生产环境部署 |
 
 ## 支持的操作系统
 
@@ -106,9 +125,15 @@ pip install -r requirements.txt
 # 一键端到端演示（3 批次上链 + PBFT 共识 + 拜占庭攻击检测）
 make demo
 
+# 100 条日志完整流程验证（含高危命令、篡改检测）
+python scripts/demo_test.py
+
 # 或手动启动 API + Web 仪表板
 make run-api
 # 浏览器打开 http://localhost:5000
+
+# 连接远程 API 运行验证
+python scripts/demo_test.py --url http://服务器IP:5000
 
 # 查看 CLI 工具
 python -m src.cli.audit_cli chain-info
@@ -123,17 +148,14 @@ python -m src.cli.audit_cli report
 
 部署到服务器，作为联盟链节点运行，接收客户端采集的日志并上链存证。
 
-#### 方式 A：Docker 完整部署
+#### 方式 A：Docker 完整部署（MockBCOS 4 节点联盟链）
 
 ```bash
-# 启动 BCOS 4 节点 + ES + API（共 6 容器）
-docker-compose up -d
+# 启动 MockBCOS 4 节点 + ES + API（共 6 容器）
+docker compose --profile production_sim up -d
 
 # 查看日志
-docker-compose logs -f
-
-# 部署 Solidity 合约（首次需要）
-docker exec audit-api python scripts/deploy_contract.py
+docker compose logs -f
 ```
 
 #### 方式 B：裸机部署
@@ -178,16 +200,18 @@ curl http://服务器IP:5000/api/v1/audit/search?size=10
 
 ---
 
-### 4. 生产环境模拟（Docker 本地测试）
+### 4. 生产环境模拟（Docker 独立节点容器）
 
-在本机用 Docker 启动完整的 FISCO BCOS 联盟链 + API + ES，模拟真实生产环境。
+在本机用 Docker 启动完整的 MockBCOS 4 节点联盟链 + ES + API，模拟真实生产环境。
 
 ```bash
-# 启动全部 6 个容器（4 BCOS 节点 + ES + API）
-docker-compose up -d
+# 启动全部 6 个容器（4 MockBCOS 节点 + ES + API）
+docker compose --profile production_sim up -d
 
-# BCOS 区块链网络正常运行
-# API 运行在 http://localhost:5000
+# MockBCOS 联盟链独立节点运行，API 在 http://localhost:5000
+
+# 运行演示测试脚本验证全流程
+python scripts/demo_test.py --url http://localhost:5000
 
 # 在宿主机上启动采集器模拟客户端
 python -m src.collector.agent --mode demo --api-url http://localhost:5000/api/v1/audit/batch
@@ -206,6 +230,13 @@ make test
 
 # 含覆盖率报告
 make test-coverage
+
+# 100 条日志完整流程验证（含高危命令、篡改检测、拜占庭攻击）
+python scripts/demo_test.py
+python scripts/demo_test.py --url http://192.168.96.161:5000  # 连接远程 API
+
+# 端到端验证（启动本地 API + 全流程测试）
+make demo
 ```
 
 ## 已实现功能
@@ -227,11 +258,13 @@ make test-coverage
 | | FISCO BCOS 真实合约（生产模式） | ✅ |
 | | 链完整性验证（逐条验证 prev_hash + record_hash） | ✅ |
 | **API** | POST /api/v1/audit/batch（日志批次上链） | ✅ |
-| | GET /api/v1/audit/search（日志搜索） | ✅ |
-| | POST /api/v1/audit/verify（单条验证） | ✅ |
-| | GET /api/v1/audit/chain/integrity（链完整性） | ✅ |
+| | GET /api/v1/audit/search（日志搜索 + ES 分页） | ✅ |
+| | POST /api/v1/audit/verify（Merkle 证明 + 签名验证） | ✅ |
+| | GET /api/v1/audit/chain/integrity（全链哈希校验） | ✅ |
+| | GET /api/v1/audit/chain/info（链摘要信息） | ✅ |
+| | GET /api/v1/audit/record/<batch_id>（链上存证查询） | ✅ |
 | | GET /api/v1/audit/chain/consensus（PBFT 共识状态） | ✅ |
-| | GET /api/v1/audit/chain/cross-verify（跨节点验证） | ✅ |
+| | GET /api/v1/audit/chain/cross-verify（跨节点账本比对） | ✅ |
 | | POST /api/v1/audit/chain/attack（拜占庭攻击模拟） | ✅ |
 | **告警** | 高危命令即时邮件告警 | ✅ |
 | | 中危命令缓冲批量告警（5条或10分钟超时） | ✅ |
@@ -258,6 +291,9 @@ make test-coverage
 | | `src/merkle/proof.py` | Merkle 证明生成 / 验证 |
 | 哈希链 | `src/chain/hash_chain.py` | 跨批次 SHA-256 链式存证、完整性验证 |
 | 区块链 | `src/debug/mock_bcos.py` | MockBCOS + PBFT 共识网络 + 拜占庭模拟 |
+| | `src/debug/mock_node_server.py` | MockBCOS 节点 HTTP RPC 服务（Docker 容器） |
+| | `src/debug/mock_bcos_client.py` | MockBCOS HTTP 远程客户端（production_sim） |
+| | `src/ledger/__init__.py` | 模式自动选择（demo/production_sim/production） |
 | | `src/ledger/bcos_client.py` | FISCO BCOS SDK / JSON-RPC 客户端 |
 | | `src/ledger/contract.py` | 合约调用封装 |
 | | `bcos/contract/audit_ledger.py` | Python 合约 + ABI 定义 |
@@ -277,6 +313,11 @@ make test-coverage
 | | `src/alert/config.py` | 告警配置 |
 | 回放 | `src/replay/engine.py` | 操作回放引擎（时间轴 + 会话拆分） |
 | 报告 | `src/report/generator.py` | Markdown 审计报告生成器 |
-| 测试 | `src/debug/data_generator.py` | 模拟操作日志生成器 |
+| 测试 | `src/debug/data_generator.py` | 模拟操作日志生成器（normal/medium/high 风险混合） |
+| | `scripts/demo_test.py` | 100 条日志完整流程验证脚本 |
+| | `scripts/e2e_demo.py` | 端到端验证脚本（含 API 启动） |
 | Shell | `scripts/install-audit-hook.sh` | Shell Hook 安装脚本 |
-| | `scripts/e2e_demo.py` | 端到端验证脚本 |
+| Docker | `Dockerfile` | API 服务容器 |
+| | `Dockerfile.node` | MockBCOS 节点容器 |
+| | `docker-compose.yml` | 多模式部署编排 |
+| | `docker-compose.prod_sim.yml` | production_sim 环境变量 |
