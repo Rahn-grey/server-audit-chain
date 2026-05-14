@@ -1,32 +1,27 @@
-# FISCO BCOS 3.0.0 节点配置（INI格式，PBFT共识，4节点联盟链）
-
 [chain]
-    id = 1
-    sm_crypto = false
-    sm_crypto_channel = false
+id=1
+sm_crypto=false
 
 [consensus]
-    consensus_type = pbft
-    block_tx_count_limit = 1000
-    leader_period = 1
-    node.0 = bcos-node1:30300
-    node.1 = bcos-node2:30300
-    node.2 = bcos-node3:30300
-    node.3 = bcos-node4:30300
+consensus_type=pbft
+block_tx_count_limit=1000
+leader_period=1
 
 [storage]
-    type = rocksdb
-    path = /data
+type=rocksdb
+path=/data
 
 [network]
-    listen_ip = 0.0.0.0
-    listen_port = 30300
-    rpc_listen_ip = 0.0.0.0
-    rpc_listen_port = 20200
+listen_ip=0.0.0.0
+listen_port=30300
+
+[rpc]
+listen_ip=0.0.0.0
+listen_port=20200
 
 [tx_pool]
-    limit = 10000
+limit=10000
 
 [log]
-    level = info
-    path = /data/log
+level=info
+path=/data/log
