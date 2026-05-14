@@ -130,6 +130,10 @@ class MockBCOSClient:
             "nodes": nodes,
         }
 
+    def simulate_byzantine_attack(self) -> dict:
+        """模拟拜占庭攻击。在远程模式下需通过节点 RPC 触发。"""
+        return {"success": False, "message": "远程模式请直接向 mock-node 发送 POST /tamper"}
+
     def cross_verify(self) -> dict:
         ledgers = []
         for url in self._node_urls:

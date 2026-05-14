@@ -128,6 +128,21 @@ def status():
     })
 
 
+@app.route("/tamper", methods=["POST"])
+def tamper():
+    """模拟拜占庭篡改：修改本节点最后一条记录的 merkle_root。"""
+    data = request.get_json(force=True)
+    batch_id = data.get("batch_id")
+    new_root = data.get("new_merkle_root", hashlib.sha256(b"BYZANTINE").hexdigest())
+    for r in _records:
+        if r["batch_id"] == batch_id:
+            old = r["merkle_root"]
+            r["merkle_root"] = new_root
+            logger.warning("[BYZANTINE] %s 篡改 batch_id=%s: %s... → %s...", _node_id, batch_id, old[:16], new_root[:16])
+            return jsonify({"success": True, "old_merkle_root": old, "new_merkle_root": new_root})
+    return jsonify({"success": False, "message": "batch_id not found"})
+
+
 @app.route("/reset", methods=["POST"])
 def reset():
     global _records
