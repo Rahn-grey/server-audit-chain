@@ -1,28 +1,109 @@
 # ================================================================
 # 服务器操作审计系统 — Docker 部署
 # ================================================================
-# 默认启动 (demo 模式, MockBCOS, 1 容器):
+# 默认 demo 模式 (MockBCOS):
 #   docker-compose up -d
 #
-# 带 ES (production 模式):
-#   docker-compose --profile es up -d
-# ================================================================
-# 注: FISCO BCOS 多节点部署需要官方 build_chain 工具生成配置
-# 参见: https://fisco-bcos-documentation.readthedocs.io
+# 生产模拟 (FISCO BCOS 4 节点 + ES):
+#   docker-compose --profile production up -d
 # ================================================================
 
 services:
+  # ---- 审计 API ----
   audit-api:
     build: .
     container_name: audit-api
     ports:
       - "5000:5000"
     environment:
-      - AUDIT_SYSTEM_MODE=demo
+      - AUDIT_SYSTEM_MODE=${AUDIT_SYSTEM_MODE:-demo}
+      - BCOS_ENDPOINT=${BCOS_ENDPOINT:-bcos-node1:20200}
+      - ES_HOST=${ES_HOST:-elasticsearch:9200}
       - FLASK_APP=src.api.routes
-      - ES_HOST=elasticsearch:9200
     restart: unless-stopped
 
+  # ---- FISCO BCOS 联盟链 4 节点 (profile: production) ----
+  bcos-node1:
+    image: fiscoorg/fiscobcos:v3.0.0
+    container_name: bcos-node1
+    ports:
+      - "20200:20200"
+    volumes:
+      - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - bcos-data1:/data
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production"]
+    command:
+      - fisco-bcos
+      - -c
+      - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
+
+  bcos-node2:
+    image: fiscoorg/fiscobcos:v3.0.0
+    container_name: bcos-node2
+    ports:
+      - "20201:20200"
+    volumes:
+      - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - bcos-data2:/data
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production"]
+    command:
+      - fisco-bcos
+      - -c
+      - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
+
+  bcos-node3:
+    image: fiscoorg/fiscobcos:v3.0.0
+    container_name: bcos-node3
+    ports:
+      - "20202:20200"
+    volumes:
+      - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - bcos-data3:/data
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production"]
+    command:
+      - fisco-bcos
+      - -c
+      - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
+
+  bcos-node4:
+    image: fiscoorg/fiscobcos:v3.0.0
+    container_name: bcos-node4
+    ports:
+      - "20203:20200"
+    volumes:
+      - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - bcos-data4:/data
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production"]
+    command:
+      - fisco-bcos
+      - -c
+      - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
+
+  # ---- Elasticsearch (profile: production) ----
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: audit-es
@@ -34,8 +115,18 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     volumes:
       - es-data:/usr/share/elasticsearch/data
+    networks:
+      - audit-chain-net
     restart: unless-stopped
-    profiles: ["es"]
+    profiles: ["production"]
 
 volumes:
+  bcos-data1:
+  bcos-data2:
+  bcos-data3:
+  bcos-data4:
   es-data:
+
+networks:
+  audit-chain-net:
+    driver: bridge
