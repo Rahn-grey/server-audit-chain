@@ -149,7 +149,8 @@ class TestIntegration:
             # 重建Merkle树
             local_tree = MerkleTree(batch_logs)
             local_root = local_tree.get_root()
-            # 用原始日志直接构建
-            original_tree = MerkleTree(logs)
+            # 用原始日志（按 log_id 排序）构建
+            original_sorted = sorted(logs, key=lambda x: x.get("log_id", ""))
+            original_tree = MerkleTree(original_sorted)
             original_root = original_tree.get_root()
             assert local_root == original_root

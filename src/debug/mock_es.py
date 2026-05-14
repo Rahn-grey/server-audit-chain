@@ -159,7 +159,7 @@ class MockES:
 
     def get_logs_by_batch(self, batch_id: str) -> list[dict]:
         rows = self._conn.execute(
-            "SELECT raw_json FROM logs WHERE batch_id = ? ORDER BY timestamp",
+            "SELECT raw_json FROM logs WHERE batch_id = ? ORDER BY log_id",
             (batch_id,),
         ).fetchall()
         return [json.loads(r["raw_json"]) for r in rows]

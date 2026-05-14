@@ -92,8 +92,9 @@ def submit_batch():
         if len(logs) > 10000:
             return jsonify({"error": "单批次日志数不能超过10000"}), 400
 
-        # 1. 构建Merkle树
-        tree = MerkleTree(logs)
+        # 1. 构建Merkle树（按 log_id 排序保证确定性）
+        logs_sorted = sorted(logs, key=lambda x: x.get("log_id", ""))
+        tree = MerkleTree(logs_sorted)
         merkle_root = tree.get_root()
 
         # 2. 哈希链追加
