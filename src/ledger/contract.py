@@ -1,3 +1,4 @@
+from __future__ import annotations
 """合约调用封装。
 
 提供对审计合约各函数的便捷调用接口。
