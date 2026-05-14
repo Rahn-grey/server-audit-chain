@@ -92,7 +92,9 @@ def submit_batch():
         if len(logs) > 10000:
             return jsonify({"error": "单批次日志数不能超过10000"}), 400
 
-        # 1. 构建Merkle树（按 log_id 排序保证确定性）
+        # 1. 给每条日志附上 batch_id，再按 log_id 排序构建 Merkle 树
+        for log in logs:
+            log.setdefault("batch_id", batch_id)
         logs_sorted = sorted(logs, key=lambda x: x.get("log_id", ""))
         tree = MerkleTree(logs_sorted)
         merkle_root = tree.get_root()
@@ -116,14 +118,10 @@ def submit_batch():
             log_count=len(logs),
         )
 
-        # 5. 给每条日志附上 batch_id
-        for log in logs:
-            log.setdefault("batch_id", batch_id)
-
-        # 6. 存储日志原文到ES
+        # 5. 存储日志原文到ES
         _es.bulk_index(logs)
 
-        # 7. 告警检查（高危命令触发邮件告警）
+        # 6. 告警检查（高危命令触发邮件告警）
         if _alert_engine:
             try:
                 _alert_engine.check_batch_and_alert(logs)
