@@ -28,6 +28,7 @@ services:
   bcos-node1:
     image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node1
+    command: fisco-bcos -c /etc/fisco/config.toml
     ports:
       - "20200:20200"
     volumes:
@@ -42,6 +43,7 @@ services:
   bcos-node2:
     image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node2
+    command: fisco-bcos -c /etc/fisco/config.toml
     ports:
       - "20201:20200"
     volumes:
@@ -56,6 +58,7 @@ services:
   bcos-node3:
     image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node3
+    command: fisco-bcos -c /etc/fisco/config.toml
     ports:
       - "20202:20200"
     volumes:
@@ -70,6 +73,7 @@ services:
   bcos-node4:
     image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node4
+    command: fisco-bcos -c /etc/fisco/config.toml
     ports:
       - "20203:20200"
     volumes:
