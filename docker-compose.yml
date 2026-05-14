@@ -1,24 +1,13 @@
 # ================================================================
 # 服务器操作审计系统 — 服务器端部署
 # ================================================================
-# 架构:
-#   ┌─────────────────────────────────────────────────────┐
-#   │ 服务器 (本文件部署)                                  │
-#   │   audit-api ← ES ← BCOS 4节点联盟链 (PBFT共识)      │
-#   │   ↑ 5000 端口接收日志                               │
-#   └─────────────────────────────────────────────────────┘
-#              ↑ POST /api/v1/audit/batch
-#   ┌──────────┴──────────────────────────────────────────┐
-#   │ 客户端 (每台被审计机器, python 直接跑)              │
-#   │   shell hook → collector agent → 日志推送到服务器   │
-#   └─────────────────────────────────────────────────────┘
-#
-# 启动:
-#   docker-compose up -d
+# 用途：部署到服务器，运行 BCOS 4 节点联盟链 + ES + API
+# 启动：docker-compose up -d
+# 验证：curl http://localhost:5000/api/v1/audit/chain/info
 # ================================================================
 
 services:
-  # ---- 审计 API (接收日志 / 上链) ----
+  # ---- 审计 API ----
   audit-api:
     build: .
     container_name: audit-api
@@ -26,19 +15,16 @@ services:
       - "5000:5000"
     environment:
       - AUDIT_SYSTEM_MODE=production_sim
-      - FLASK_APP=src.api.routes
       - BCOS_ENDPOINT=bcos-node1:20200
       - ES_HOST=elasticsearch:9200
     depends_on:
       elasticsearch:
         condition: service_started
-      bcos-node1:
-        condition: service_started
     networks:
       - audit-chain-net
     restart: unless-stopped
 
-  # ---- FISCO BCOS 联盟链 4 节点 (PBFT) ----
+  # ---- FISCO BCOS 联盟链 4 节点 ----
   bcos-node1:
     image: fiscoorg/fiscobcos:latest
     container_name: bcos-node1
@@ -104,7 +90,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     volumes:
       - es-data:/usr/share/elasticsearch/data
     networks:
