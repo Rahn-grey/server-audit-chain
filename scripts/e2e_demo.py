@@ -99,7 +99,7 @@ class APIServer:
         self.stop()
         self._proc = subprocess.Popen(
             [sys.executable, "-m", "flask", "run",
-             "--host", "127.0.0.1", "--port", "5000"],
+             "--host", "127.0.0.1", "--port", "5000", "--debug"],
             env={**os.environ, "FLASK_APP": "src.api.routes",
                  "FLASK_ENV": "development", "AUDIT_SYSTEM_MODE": "demo"},
             stdout=subprocess.DEVNULL,

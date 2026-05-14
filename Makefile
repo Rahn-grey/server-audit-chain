@@ -18,7 +18,7 @@ test-coverage:
 # 启动Flask API (demo模式, MockBCOS)
 run-api:
 	AUDIT_SYSTEM_MODE=demo FLASK_APP=src.api.routes \
-	python -m flask run --host 0.0.0.0 --port 5000
+	python -m flask run --host 0.0.0.0 --port 5000 --debug
 
 # 运行CLI工具
 run-cli:
