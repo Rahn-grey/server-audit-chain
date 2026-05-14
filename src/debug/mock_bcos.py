@@ -286,7 +286,8 @@ class MockConsensusNetwork:
         logger.info("联盟链共识网络启动: %d 节点 (%d 诚实/%d 拜占庭) | "
                     "创世节点=%s | PBFT quorum=%d | "
                     "共识: Pre-Prepare(L)→Prepare→Commit",
-                    num_nodes, honest_count, self.genesis_node_id, self._quorum)
+                    num_nodes, honest_count, self.fault_nodes,
+                    self.genesis_node_id, self._quorum)
 
     # ==================================================================
     # PBFT 共识 — 核心上链入口
