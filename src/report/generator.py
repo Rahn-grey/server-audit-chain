@@ -1,3 +1,4 @@
+from __future__ import annotations
 """审计报告生成器。
 
 生成 Markdown 格式审计报告，包含:

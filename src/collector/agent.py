@@ -1,3 +1,4 @@
+from __future__ import annotations
 """采集代理 — 主调度器。
 
 协调日志文件监听、堡垒机接收、解析和转发。

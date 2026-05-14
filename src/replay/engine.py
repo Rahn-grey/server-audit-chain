@@ -1,3 +1,4 @@
+from __future__ import annotations
 """操作回放引擎。
 
 查询日志并按时间轴输出操作序列，支持 CLI 和编程两种调用方式。

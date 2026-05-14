@@ -1,3 +1,4 @@
+from __future__ import annotations
 """MockBCOS - 模拟 FISCO BCOS 联盟链 + PBFT 共识。
 
 架构:

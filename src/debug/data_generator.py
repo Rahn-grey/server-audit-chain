@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Debug模式模拟数据生成器。
 
 为Debug模式提供一键生成模拟操作日志的功能，

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Flask路由定义。
 
 提供RESTful API接口：

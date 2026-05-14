@@ -1,3 +1,4 @@
+from __future__ import annotations
 """FISCO BCOS Python SDK封装 — 生产模式区块链客户端。
 
 提供两种连接方式:

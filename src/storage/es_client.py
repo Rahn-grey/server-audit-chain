@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Elasticsearch Python 客户端封装。
 
 生产模式使用真实 ES。ES 不可用时优雅降级（日志警告 + 返回空结果），

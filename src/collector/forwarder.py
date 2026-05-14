@@ -1,3 +1,4 @@
+from __future__ import annotations
 """HTTP 转发器 — 将收集到的日志批量提交到审计 API。
 
 自适应批处理:

@@ -1,3 +1,4 @@
+from __future__ import annotations
 """告警引擎 — 判定风险等级并触发邮件告警。
 
 集成点:

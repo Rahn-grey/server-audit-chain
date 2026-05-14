@@ -1,3 +1,4 @@
+from __future__ import annotations
 """链下查询与验证逻辑。
 
 提供搜索操作日志、验证单条日志真伪的完整流程。

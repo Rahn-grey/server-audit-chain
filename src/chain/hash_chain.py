@@ -1,3 +1,4 @@
+from __future__ import annotations
 """跨批次哈希链管理。
 
 维护跨批次的哈希链，chain_hash = SHA256(prev_chain_hash + merkle_root)。

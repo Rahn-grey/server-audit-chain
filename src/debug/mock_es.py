@@ -1,3 +1,4 @@
+from __future__ import annotations
 """MockES - SQLite日志存储。
 
 在SQLite中模拟ES的索引、搜索、分页行为。
