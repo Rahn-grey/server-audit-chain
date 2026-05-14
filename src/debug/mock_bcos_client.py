@@ -100,11 +100,13 @@ class MockBCOSClient:
         )
 
     def get_chain_info(self):
-        resp = self._get(f"{self._leader_url()}/status")
+        status = self._get(f"{self._leader_url()}/integrity")
         from src.debug.mock_bcos import ChainInfo
+        total = status.get("total", 0)
+        latest_hash = self._get(f"{self._leader_url()}/status").get("latest_hash", None)
         return ChainInfo(
-            total_records=resp.get("record_count", 0),
-            latest_record_hash=resp.get("latest_hash", None),
+            total_records=total,
+            latest_record_hash=latest_hash,
         )
 
     def verify_record(self, batch_id: str, merkle_root: str) -> bool:

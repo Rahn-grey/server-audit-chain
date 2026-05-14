@@ -65,6 +65,7 @@ class ESClient:
         self.host = host or ES_HOST
         self._client = None
         self._available = False
+        self.connect()
 
     def connect(self):
         """建立 ES 连接。ES 不可用时静默降级。"""
