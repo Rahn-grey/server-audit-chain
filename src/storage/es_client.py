@@ -197,11 +197,11 @@ class ESClient:
 
     def get_logs_by_batch(self, batch_id: str,
                           index_prefix: str = "server-audit") -> list[dict]:
-        """获取指定批次的所有日志。"""
+        """获取指定批次的所有日志（精确匹配 batch_id）。"""
         if not self._available:
             return []
         try:
-            query = {"query": {"match": {"batch_id": batch_id}}, "size": 10000}
+            query = {"query": {"term": {"batch_id.keyword": batch_id}}, "size": 10000}
             result = self._client.search(index=f"{index_prefix}-*", body=query)
             return [h["_source"] for h in result["hits"]["hits"]]
         except Exception as e:
