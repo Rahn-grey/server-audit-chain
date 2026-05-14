@@ -115,14 +115,16 @@ def submit_batch():
             log_count=len(logs),
         )
 
-        # 5. 存储日志原文到ES
+        # 5. 给每条日志附上 batch_id
+        for log in logs:
+            log.setdefault("batch_id", batch_id)
+
+        # 6. 存储日志原文到ES
         _es.bulk_index(logs)
 
-        # 6. 告警检查（高危命令触发邮件告警）
+        # 7. 告警检查（高危命令触发邮件告警）
         if _alert_engine:
             try:
-                for log in logs:
-                    log.setdefault("batch_id", batch_id)
                 _alert_engine.check_batch_and_alert(logs)
             except Exception as e:
                 logger.warning("告警检查异常: %s", e)
