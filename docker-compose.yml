@@ -31,6 +31,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - ./bcos/nodes/node1/node.pem:/data/node.pem
       - bcos-data1:/data
     networks:
       - audit-chain-net
@@ -51,6 +52,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - ./bcos/nodes/node2/node.pem:/data/node.pem
       - bcos-data2:/data
     networks:
       - audit-chain-net
@@ -71,6 +73,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - ./bcos/nodes/node3/node.pem:/data/node.pem
       - bcos-data3:/data
     networks:
       - audit-chain-net
@@ -91,6 +94,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - ./bcos/nodes/node4/node.pem:/data/node.pem
       - bcos-data4:/data
     networks:
       - audit-chain-net
