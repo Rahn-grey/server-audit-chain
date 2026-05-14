@@ -55,8 +55,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
-      - ./bcos/nodes/node1/node.pem:/data/node.pem
-      - bcos-data1:/data
+      - ./bcos/nodes/node1/:/data
     networks:
       - audit-chain-net
     restart: unless-stopped
@@ -76,8 +75,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
-      - ./bcos/nodes/node2/node.pem:/data/node.pem
-      - bcos-data2:/data
+      - ./bcos/nodes/node2/:/data
     networks:
       - audit-chain-net
     restart: unless-stopped
@@ -97,8 +95,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
-      - ./bcos/nodes/node3/node.pem:/data/node.pem
-      - bcos-data3:/data
+      - ./bcos/nodes/node3/:/data
     networks:
       - audit-chain-net
     restart: unless-stopped
@@ -118,8 +115,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
-      - ./bcos/nodes/node4/node.pem:/data/node.pem
-      - bcos-data4:/data
+      - ./bcos/nodes/node4/:/data
     networks:
       - audit-chain-net
     restart: unless-stopped
@@ -139,8 +135,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
-      - ./bcos/nodes/node5/node.pem:/data/node.pem
-      - bcos-data5:/data
+      - ./bcos/nodes/node5/:/data
     networks:
       - audit-chain-net
     restart: unless-stopped
@@ -160,8 +155,7 @@ services:
     volumes:
       - ./bcos/conf/config.toml:/etc/fisco/config.toml
       - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
-      - ./bcos/nodes/node6/node.pem:/data/node.pem
-      - bcos-data6:/data
+      - ./bcos/nodes/node6/:/data
     networks:
       - audit-chain-net
     restart: unless-stopped
@@ -174,12 +168,6 @@ services:
       - /etc/fisco/config.genesis
 
 volumes:
-  bcos-data1:
-  bcos-data2:
-  bcos-data3:
-  bcos-data4:
-  bcos-data5:
-  bcos-data6:
   es-data:
 
 networks:
