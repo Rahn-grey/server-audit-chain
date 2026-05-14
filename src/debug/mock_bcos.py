@@ -258,6 +258,7 @@ class MockConsensusNetwork:
     """PBFT 共识网络 — debug 模式下的完整区块链实现。
 
     4 节点, 1 拜占庭, PBFT 三阶段投票, 跨节点验证。
+    node_0 为创世节点（Leader），负责 Pre-Prepare 提议。
     """
 
     def __init__(self, num_nodes: int = 4, fault_nodes: int = 1):
@@ -275,13 +276,17 @@ class MockConsensusNetwork:
             is_honest = i < (num_nodes - fault_nodes)
             self.nodes.append(MockNode(f"node_{i}", is_honest=is_honest))
 
+        # 创世节点 = 第一个诚实节点，负责 Pre-Prepare 提议
+        self.genesis_node_id = "node_0"
+
         self._consensus_log: list[dict] = []
         self._tx_counter = 0
 
         honest_count = sum(1 for n in self.nodes if n.is_honest)
         logger.info("联盟链共识网络启动: %d 节点 (%d 诚实/%d 拜占庭) | "
-                    "PBFT quorum=%d | 共识: Pre-Prepare→Prepare→Commit",
-                    num_nodes, honest_count, fault_nodes, self._quorum)
+                    "创世节点=%s | PBFT quorum=%d | "
+                    "共识: Pre-Prepare(L)→Prepare→Commit",
+                    num_nodes, honest_count, self.genesis_node_id, self._quorum)
 
     # ==================================================================
     # PBFT 共识 — 核心上链入口
@@ -306,9 +311,9 @@ class MockConsensusNetwork:
         rnd = {"round": self._tx_counter, "batch_id": batch_id}
 
         # Phase 1: Pre-Prepare
-        logger.info("[PBFT-%d] Pre-Prepare → 广播 batch_id=%s",
-                   self._tx_counter, batch_id)
-        rnd["phase1"] = "broadcast_to_all_nodes"
+        logger.info("[PBFT-%d] Pre-Prepare(L=%s) → 广播 batch_id=%s",
+                   self._tx_counter, self.genesis_node_id, batch_id)
+        rnd["phase1"] = f"broadcast_from_{self.genesis_node_id}"
 
         # Phase 2: Prepare — 各节点投票
         logger.info("[PBFT-%d] Prepare → 节点投票", self._tx_counter)
@@ -362,10 +367,7 @@ class MockConsensusNetwork:
     # ==================================================================
 
     def _leader(self) -> MockNode:
-        """获取 Leader 诚实节点。"""
-        for n in self.nodes:
-            if n.is_honest:
-                return n
+        """获取创世节点（node_0），负责 Pre-Prepare 提议。"""
         return self.nodes[0]
 
     def query_by_batch_id(self, batch_id: str) -> AuditRecord | None:
@@ -494,10 +496,11 @@ class MockConsensusNetwork:
         return {
             "config": {
                 "total_nodes": self.num_nodes,
+                "genesis_node": self.genesis_node_id,
                 "consensus_algorithm": "PBFT (Practical Byzantine Fault Tolerance)",
                 "fault_tolerance": f"f={self._f}, 可容忍 {self._f} 拜占庭节点",
                 "quorum": f"2f+1={self._quorum}",
-                "flow": "Pre-Prepare → Prepare(投票) → Commit",
+                "flow": f"Pre-Prepare({self.genesis_node_id}) → Prepare(投票) → Commit",
             },
             "nodes": nodes_status,
             "latest_consensus": (self._consensus_log[-1]

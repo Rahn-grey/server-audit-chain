@@ -235,7 +235,7 @@ class TestPBFTVotingLog:
         round_info = net._consensus_log[0]
 
         # Phase 1: 广播
-        assert round_info["phase1"] == "broadcast_to_all_nodes"
+        assert "broadcast_from" in round_info["phase1"]
 
         # Phase 2: 投票详情
         p2 = round_info["phase2"]
@@ -248,7 +248,7 @@ class TestPBFTVotingLog:
         net.record_audit(**_make_record_args("test_phases"))
 
         log = net._consensus_log[0]
-        assert log["phase1"] == "broadcast_to_all_nodes"
+        assert "broadcast_from" in log["phase1"]
         assert isinstance(log["phase2"], dict)
         assert isinstance(log["phase3"], dict)
         assert log["phase3"]["status"] == "committed"
