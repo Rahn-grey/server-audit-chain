@@ -1,0 +1,9 @@
+# ================================================================
+# 生产模拟模式配置覆盖
+# 用法: docker compose -f docker-compose.yml -f docker-compose.prod_sim.yml up -d
+# ================================================================
+
+services:
+  audit-api:
+    environment:
+      - MOCK_NODE_URLS=http://mock-node0:6000,http://mock-node1:6001,http://mock-node2:6002,http://mock-node3:6003
