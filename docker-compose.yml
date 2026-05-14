@@ -40,6 +40,8 @@ services:
       - fisco-bcos
       - -c
       - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
 
   bcos-node2:
     image: fiscoorg/fiscobcos:v3.0.0
@@ -58,6 +60,8 @@ services:
       - fisco-bcos
       - -c
       - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
 
   bcos-node3:
     image: fiscoorg/fiscobcos:v3.0.0
@@ -76,6 +80,8 @@ services:
       - fisco-bcos
       - -c
       - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
 
   bcos-node4:
     image: fiscoorg/fiscobcos:v3.0.0
@@ -94,6 +100,8 @@ services:
       - fisco-bcos
       - -c
       - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
 
   # ---- Elasticsearch (profile: production) ----
   elasticsearch:
