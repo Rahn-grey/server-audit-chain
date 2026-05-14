@@ -18,13 +18,16 @@ if IS_DEMO:
     logger.info("联盟链: MockBCOS 进程内 (%d 节点模拟 PBFT)", CONSENSUS_NODE_COUNT)
 
 elif IS_PRODUCTION_SIM:
-    # 连接独立容器的 MockBCOS 节点
-    _node_urls = os.environ.get("MOCK_NODE_URLS", "http://mock-node0:6000,http://mock-node1:6001,http://mock-node2:6002,http://mock-node3:6003")
-    from src.debug.mock_bcos_client import MockBCOSClient
-    # 返回工厂函数，因为每个 BCOSClient() 实例都共享同一个客户端
-    _urls = [u.strip() for u in _node_urls.split(",")]
-    BCOSClient = lambda: MockBCOSClient(node_urls=_urls)
-    logger.info("联盟链: MockBCOS HTTP 远程 (%d 独立节点容器)", len(_urls))
+    # 如果设置了 MOCK_NODE_URLS 则连接独立容器，否则退回进程内 MockBCOS
+    _mock_urls = os.environ.get("MOCK_NODE_URLS")
+    if _mock_urls:
+        from src.debug.mock_bcos_client import MockBCOSClient
+        _urls = [u.strip() for u in _mock_urls.split(",")]
+        BCOSClient = lambda: MockBCOSClient(node_urls=_urls)
+        logger.info("联盟链: MockBCOS HTTP 远程 (%d 独立节点容器)", len(_urls))
+    else:
+        from src.debug.mock_bcos import MockBCOS as BCOSClient
+        logger.info("联盟链: MockBCOS 进程内 (生产模拟模式, 未配置远程节点)")
 
 elif IS_PRODUCTION:
     from src.ledger.bcos_client import BCOSClient
