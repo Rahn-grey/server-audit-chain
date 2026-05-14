@@ -95,6 +95,8 @@ class APIServer:
 
     def start(self):
         logger.info("启动 Flask API ...")
+        # 清理旧进程（防止上次残留）
+        self.stop()
         self._proc = subprocess.Popen(
             [sys.executable, "-m", "flask", "run",
              "--host", "127.0.0.1", "--port", "5000"],
@@ -411,6 +413,12 @@ def main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
+    # 清理上次运行的遗留数据
+    try:
+        from src.debug.mock_es import MockES
+        MockES().reset_logs()
+    except Exception:
+        pass
     print()
     print(f"{'=' * 60}")
     print(f"  端到端验证 — {args.batches}批次 x {args.logs_per_batch}条")
