@@ -26,7 +26,7 @@ services:
 
   # ---- FISCO BCOS 联盟链 4 节点 ----
   bcos-node1:
-    image: fiscoorg/fiscobcos:latest
+    image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node1
     ports:
       - "20200:20200"
@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
 
   bcos-node2:
-    image: fiscoorg/fiscobcos:latest
+    image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node2
     ports:
       - "20201:20200"
@@ -54,7 +54,7 @@ services:
     restart: unless-stopped
 
   bcos-node3:
-    image: fiscoorg/fiscobcos:latest
+    image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node3
     ports:
       - "20202:20200"
@@ -68,7 +68,7 @@ services:
     restart: unless-stopped
 
   bcos-node4:
-    image: fiscoorg/fiscobcos:latest
+    image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node4
     ports:
       - "20203:20200"
