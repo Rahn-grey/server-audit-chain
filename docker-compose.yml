@@ -1,11 +1,15 @@
 # ================================================================
 # 服务器操作审计系统 — Docker 部署
 # ================================================================
-# 默认 demo 模式 (MockBCOS):
+# 生产模式 (服务端作为 BCOS 联盟链节点, 默认):
 #   docker-compose up -d
 #
-# 生产模拟 (FISCO BCOS 4 节点 + ES):
-#   docker-compose --profile production up -d
+# 生产模拟 (本地 6 节点 BCOS 测试):
+#   bash scripts/setup_bcos_nodes.sh          # 初始化节点
+#   docker-compose --profile production_sim up -d
+#
+# 演示模式 (MockBCOS, 无需 Docker):
+#   make demo
 # ================================================================
 
 services:
@@ -16,13 +20,33 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - AUDIT_SYSTEM_MODE=${AUDIT_SYSTEM_MODE:-demo}
-      - BCOS_ENDPOINT=${BCOS_ENDPOINT:-bcos-node1:20200}
-      - ES_HOST=${ES_HOST:-elasticsearch:9200}
+      - AUDIT_SYSTEM_MODE=production
       - FLASK_APP=src.api.routes
+      - BCOS_ENDPOINT=${BCOS_ENDPOINT:-127.0.0.1:20200}
+      - ES_HOST=${ES_HOST:-elasticsearch:9200}
+    networks:
+      - audit-chain-net
     restart: unless-stopped
 
-  # ---- FISCO BCOS 联盟链 4 节点 (profile: production) ----
+  # ---- Elasticsearch ----
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: audit-es
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+
+  # ================================================================
+  # 生产模拟: 6 节点 FISCO BCOS (profile: production_sim)
+  # ================================================================
   bcos-node1:
     image: fiscoorg/fiscobcos:v3.0.0
     container_name: bcos-node1
@@ -36,7 +60,7 @@ services:
     networks:
       - audit-chain-net
     restart: unless-stopped
-    profiles: ["production"]
+    profiles: ["production_sim"]
     command:
       - fisco-bcos
       - -c
@@ -57,7 +81,7 @@ services:
     networks:
       - audit-chain-net
     restart: unless-stopped
-    profiles: ["production"]
+    profiles: ["production_sim"]
     command:
       - fisco-bcos
       - -c
@@ -78,7 +102,7 @@ services:
     networks:
       - audit-chain-net
     restart: unless-stopped
-    profiles: ["production"]
+    profiles: ["production_sim"]
     command:
       - fisco-bcos
       - -c
@@ -99,7 +123,7 @@ services:
     networks:
       - audit-chain-net
     restart: unless-stopped
-    profiles: ["production"]
+    profiles: ["production_sim"]
     command:
       - fisco-bcos
       - -c
@@ -107,28 +131,55 @@ services:
       - -g
       - /etc/fisco/config.genesis
 
-  # ---- Elasticsearch (profile: production) ----
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: audit-es
+  bcos-node5:
+    image: fiscoorg/fiscobcos:v3.0.0
+    container_name: bcos-node5
     ports:
-      - "9200:9200"
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "20204:20200"
     volumes:
-      - es-data:/usr/share/elasticsearch/data
+      - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - ./bcos/nodes/node5/node.pem:/data/node.pem
+      - bcos-data5:/data
     networks:
       - audit-chain-net
     restart: unless-stopped
-    profiles: ["production"]
+    profiles: ["production_sim"]
+    command:
+      - fisco-bcos
+      - -c
+      - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
+
+  bcos-node6:
+    image: fiscoorg/fiscobcos:v3.0.0
+    container_name: bcos-node6
+    ports:
+      - "20205:20200"
+    volumes:
+      - ./bcos/conf/config.toml:/etc/fisco/config.toml
+      - ./bcos/conf/config.genesis:/etc/fisco/config.genesis
+      - ./bcos/nodes/node6/node.pem:/data/node.pem
+      - bcos-data6:/data
+    networks:
+      - audit-chain-net
+    restart: unless-stopped
+    profiles: ["production_sim"]
+    command:
+      - fisco-bcos
+      - -c
+      - /etc/fisco/config.toml
+      - -g
+      - /etc/fisco/config.genesis
 
 volumes:
   bcos-data1:
   bcos-data2:
   bcos-data3:
   bcos-data4:
+  bcos-data5:
+  bcos-data6:
   es-data:
 
 networks:

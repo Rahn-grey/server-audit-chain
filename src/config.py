@@ -8,7 +8,8 @@ import os
 #   production        — 服务器 FISCO BCOS 单节点 + ES，真实部署
 #                       (生产模式默认输出详细步骤日志)
 # ====================================================================
-SYSTEM_MODE = os.environ.get("AUDIT_SYSTEM_MODE", "demo")
+# 默认: production（docker-compose 直接部署即生产模式）
+SYSTEM_MODE = os.environ.get("AUDIT_SYSTEM_MODE", "production")
 
 # 模式判断
 IS_DEMO = SYSTEM_MODE == "demo"

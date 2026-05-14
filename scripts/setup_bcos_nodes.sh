@@ -9,7 +9,7 @@ set -e
 BCOS_IMAGE="fiscoorg/fiscobcos:v3.0.0"
 NODES_DIR="bcos/nodes"
 CONF_DIR="bcos/conf"
-NODE_COUNT=4
+NODE_COUNT=6
 
 mkdir -p "${NODES_DIR}" "${CONF_DIR}"
 
@@ -95,6 +95,8 @@ cat > "${CONF_DIR}/config.genesis" << GENESIS_EOF
     node.1 = ${NODE_IDS[1]}:1
     node.2 = ${NODE_IDS[2]}:1
     node.3 = ${NODE_IDS[3]}:1
+    node.4 = ${NODE_IDS[4]}:1
+    node.5 = ${NODE_IDS[5]}:1
 
 [version]
     compatibility_version = 3.0.0
