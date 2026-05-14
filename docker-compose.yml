@@ -97,7 +97,7 @@ services:
 
   # ---- Elasticsearch ----
   elasticsearch:
-    image: elasticsearch:8.11.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     container_name: audit-es
     ports:
       - "9200:9200"
